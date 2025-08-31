@@ -2,7 +2,9 @@
 
 A simple Node.js tool for cleaning and repearing 3D mesh files (OBJ format) by removing degenerate faces, merging close vertices, and consolidating coplanar faces.
 
-Most of the code is based on some python scripts generated with AI and adapted to typescript/nodejs.
+This tool is intended for use as a toy project and is not equipped to handle some important real-world cases. These include UV, vertex normals, watertight meshes or non-manifold edges.
+
+Most of the code is based on some python scripts that were generated using AI and then adapted to typescript/nodejs.
 
 ## Features
 
