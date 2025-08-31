@@ -1,0 +1,24 @@
+{
+  "name": "clean-mesh",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsx src/main.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@thi.ng/geom-io-obj": "^0.3.189",
+    "@thi.ng/object-utils": "^1.2.9",
+    "@thi.ng/vectors": "^8.6.5",
+    "gl-matrix": "^3.4.4",
+    "lodash": "^4.17.21",
+    "tsx": "^4.20.5"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "prettier": "3.6.2"
+  }
+}

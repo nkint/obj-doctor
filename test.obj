@@ -1,0 +1,23 @@
+# Test cube OBJ file
+v 0.0 0.0 0.0
+v 1.0 0.0 0.0
+v 1.0 1.0 0.0
+v 0.0 1.0 0.0
+v 0.0 0.0 1.0
+v 1.0 0.0 1.0
+v 1.0 1.0 1.0
+v 0.0 1.0 1.0
+
+o cube
+g front
+f 1 2 3 4
+g back
+f 5 8 7 6
+g right
+f 2 6 7 3
+g left
+f 1 4 8 5
+g top
+f 4 3 7 8
+g bottom
+f 1 5 6 2

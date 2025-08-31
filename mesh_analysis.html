@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Analisi Edge di Confine</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f0f0f0; }
+        #container { width: 100%; height: 80vh; border: 2px solid #333; }
+        #info { margin-top: 20px; padding: 15px; background: white; border-radius: 5px; }
+        .boundary-edge { color: red; font-weight: bold; }
+        .controls { margin-bottom: 20px; }
+        button { padding: 10px 20px; margin: 5px; background: #4CAF50; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #45a049; }
+    </style>
+</head>
+<body>
+    <h1>Analisi Mesh - Edge di Confine</h1>
+    
+    <div class="controls">
+        <button onclick="toggleWireframe()">Toggle Wireframe</button>
+        <button onclick="toggleBoundaryEdges()">Toggle Edge Confine</button>
+        <button onclick="resetView()">Reset Vista</button>
+    </div>
+    
+    <div id="container"></div>
+    
+    <div id="info">
+        <h3>Informazioni Mesh:</h3>
+        <p>Vertici: 34</p>
+        <p>Facce: 22</p>
+        <p><span class="boundary-edge">Edge di confine: 8</span></p>
+        
+        <h4>Edge di confine identificati:</h4>
+        <ul>
+<li class="boundary-edge">Edge 1: Vertice 4 (-0.000, 0.441, 0.143) → Vertice 15 (-0.000, 0.441, 0.004)</li><li class="boundary-edge">Edge 2: Vertice 15 (-0.000, 0.441, 0.004) → Vertice 23 (-0.000, 0.441, -0.143)</li><li class="boundary-edge">Edge 3: Vertice 19 (0.000, -0.273, -0.375) → Vertice 21 (0.000, -0.100, -0.432)</li><li class="boundary-edge">Edge 4: Vertice 18 (0.000, 0.000, -0.464) → Vertice 21 (0.000, -0.100, -0.432)</li><li class="boundary-edge">Edge 5: Vertice 16 (-0.000, 0.441, -0.005) → Vertice 23 (-0.000, 0.441, -0.143)</li><li class="boundary-edge">Edge 6: Vertice 4 (-0.000, 0.441, 0.143) → Vertice 16 (-0.000, 0.441, -0.005)</li><li class="boundary-edge">Edge 7: Vertice 18 (0.000, 0.000, -0.464) → Vertice 20 (-0.000, -0.108, -0.429)</li><li class="boundary-edge">Edge 8: Vertice 19 (0.000, -0.273, -0.375) → Vertice 20 (-0.000, -0.108, -0.429)</li>
+        </ul>
+        
+        <p><strong>Cosa significano gli edge di confine:</strong></p>
+        <ul>
+            <li>🔴 <strong>Linee rosse spesse</strong>: Edge di confine (usati da una sola faccia)</li>
+            <li>⚪ <strong>Wireframe bianco</strong>: Edge normali (condivisi da 2 facce)</li>
+            <li>🔵 <strong>Superficie blu</strong>: Facce della mesh</li>
+        </ul>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer, mesh, wireframe, boundaryLines;
+        let showWireframe = true;
+        let showBoundaryEdges = true;
+        
+        // Dati mesh
+        const vertices = [-0.0931693986, -0.487841994, 7.4505806e-08, -3.72529163e-09, -0.441257238, 0.143373147, 3.72529008e-09, -0.441257179, -0.143373072, -0.093169421, 0.394672364, 0.286746234, -3.72529008e-09, 0.441257179, 0.143373072, 0.0, 0.272711903, 0.375355721, -0.0931693912, -0.150751531, 0.463965297, 0.0, -1.04308128e-07, 0.463965237, 0.0, -0.272711933, 0.37535584, -0.394672155, 0.243920907, 0.177219018, -0.394672155, -0.0931696221, 0.286746323, -0.394672155, -0.301502943, 7.4505806e-08, -0.394672215, -0.0931695849, -0.286746264, -0.394672215, 0.243920982, -0.177218959, -0.0931694508, 0.394672453, -0.286746293, -1.12886825e-10, 0.441257209, 0.00434460258, -1.80255899e-09, 0.441257209, -0.00462498516, -0.0931694508, -0.150751382, -0.463965207, 0.0, 1.04308128e-07, -0.463965237, 0.0, -0.272711903, -0.375355721, -1.4810605e-09, -0.108421877, -0.428736806, 0.0, -0.0997348055, -0.431559384, 0.0, 0.272712022, -0.375355721, -6.69308685e-18, 0.441257209, -0.143373191, 0.0931693912, 0.394672513, -0.286746293, 0.0931694508, -0.487841964, 0.0, 0.0931694508, -0.150751457, 0.463965178, 0.0931693986, 0.394672513, 0.286746264, 0.394672215, -0.0931694359, 0.286746293, 0.394672155, 0.243921056, 0.177218914, 0.394672155, 0.243921056, -0.177218914, 0.394672155, -0.0931694359, -0.286746293, 0.394672215, -0.301502913, 0.0, 0.093169421, -0.150751457, -0.463965178];
+        const faces = [0, 2, 1, 3, 5, 4, 6, 8, 7, 9, 13, 12, 11, 10, 11, 0, 1, 8, 6, 10, 6, 7, 5, 3, 9, 10, 3, 4, 15, 16, 15, 23, 14, 13, 9, 14, 22, 18, 17, 12, 13, 17, 19, 2, 0, 11, 12, 20, 21, 19, 17, 18, 21, 14, 23, 22, 24, 22, 23, 25, 1, 2, 26, 7, 8, 27, 4, 5, 28, 32, 31, 30, 29, 30, 24, 23, 16, 15, 16, 4, 27, 29, 27, 5, 7, 26, 28, 29, 26, 8, 1, 25, 32, 28, 25, 2, 19, 33, 31, 32, 33, 18, 22, 24, 30, 31, 21, 20, 18, 33, 19, 20];
+        const boundaryEdges = [(4, 15), (15, 23), (19, 21), (18, 21), (16, 23), (4, 16), (18, 20), (19, 20)];
+        
+        function init() {
+            // Setup scena
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(2, 2, 2);
+            camera.lookAt(0, 0, 0);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(document.getElementById('container').clientWidth, 
+                           document.getElementById('container').clientHeight);
+            document.getElementById('container').appendChild(renderer.domElement);
+            
+            // Crea geometria
+            const geometry = new THREE.BufferGeometry();
+            
+            // Converti vertici
+            const vertexArray = [];
+            for (let i = 0; i < vertices.length; i += 3) {
+                vertexArray.push(vertices[i], vertices[i+1], vertices[i+2]);
+            }
+            
+            // Converti facce in triangoli
+            const indexArray = [];
+            for (let i = 0; i < faces.length; i += faces[i] + 1) {
+                const faceSize = faces[i];
+                const faceStart = i + 1;
+                
+                // Triangola facce con più di 3 vertici
+                for (let j = 1; j < faceSize - 1; j++) {
+                    indexArray.push(faces[faceStart], faces[faceStart + j], faces[faceStart + j + 1]);
+                }
+            }
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertexArray, 3));
+            geometry.setIndex(indexArray);
+            geometry.computeVertexNormals();
+            
+            // Mesh principale
+            const material = new THREE.MeshPhongMaterial({ 
+                color: 0x4169E1, 
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.8
+            });
+            mesh = new THREE.Mesh(geometry, material);
+            scene.add(mesh);
+            
+            // Wireframe
+            const wireframeMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, opacity: 0.3 });
+            wireframe = new THREE.LineSegments(
+                new THREE.WireframeGeometry(geometry), 
+                wireframeMaterial
+            );
+            scene.add(wireframe);
+            
+            // Edge di confine (linee rosse spesse)
+            createBoundaryLines();
+            
+            // Luci
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            
+            // Controlli mouse semplici
+            setupControls();
+            
+            animate();
+        }
+        
+        function createBoundaryLines() {
+            const boundaryGeometry = new THREE.BufferGeometry();
+            const boundaryVertices = [];
+            
+            for (let i = 0; i < boundaryEdges.length; i += 2) {
+                const v1Idx = boundaryEdges[i];
+                const v2Idx = boundaryEdges[i + 1];
+                
+                // Aggiungi i due vertici dell'edge
+                boundaryVertices.push(
+                    vertices[v1Idx * 3], vertices[v1Idx * 3 + 1], vertices[v1Idx * 3 + 2],
+                    vertices[v2Idx * 3], vertices[v2Idx * 3 + 1], vertices[v2Idx * 3 + 2]
+                );
+            }
+            
+            boundaryGeometry.setAttribute('position', new THREE.Float32BufferAttribute(boundaryVertices, 3));
+            
+            const boundaryMaterial = new THREE.LineBasicMaterial({ 
+                color: 0xff0000, 
+                linewidth: 5 
+            });
+            
+            boundaryLines = new THREE.LineSegments(boundaryGeometry, boundaryMaterial);
+            scene.add(boundaryLines);
+        }
+        
+        function setupControls() {
+            let isMouseDown = false;
+            let mouseX = 0, mouseY = 0;
+            
+            renderer.domElement.addEventListener('mousedown', (e) => {
+                isMouseDown = true;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            
+            renderer.domElement.addEventListener('mouseup', () => {
+                isMouseDown = false;
+            });
+            
+            renderer.domElement.addEventListener('mousemove', (e) => {
+                if (!isMouseDown) return;
+                
+                const deltaX = e.clientX - mouseX;
+                const deltaY = e.clientY - mouseY;
+                
+                mesh.rotation.y += deltaX * 0.01;
+                mesh.rotation.x += deltaY * 0.01;
+                wireframe.rotation.copy(mesh.rotation);
+                boundaryLines.rotation.copy(mesh.rotation);
+                
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+            
+            renderer.domElement.addEventListener('wheel', (e) => {
+                camera.position.multiplyScalar(e.deltaY > 0 ? 1.1 : 0.9);
+            });
+        }
+        
+        function toggleWireframe() {
+            wireframe.visible = !wireframe.visible;
+            showWireframe = wireframe.visible;
+        }
+        
+        function toggleBoundaryEdges() {
+            boundaryLines.visible = !boundaryLines.visible;
+            showBoundaryEdges = boundaryLines.visible;
+        }
+        
+        function resetView() {
+            camera.position.set(2, 2, 2);
+            camera.lookAt(0, 0, 0);
+            mesh.rotation.set(0, 0, 0);
+            wireframe.rotation.set(0, 0, 0);
+            boundaryLines.rotation.set(0, 0, 0);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        
+        // Avvia la visualizzazione
+        init();
+    </script>
+</body>
+</html>
