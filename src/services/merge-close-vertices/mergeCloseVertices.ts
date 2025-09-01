@@ -2,18 +2,22 @@ import { OBJGroup, OBJModel } from '@thi.ng/geom-io-obj';
 import { dist3 } from '@thi.ng/vectors';
 import { Vec } from '@thi.ng/vectors/api';
 import { copy } from '@thi.ng/object-utils';
+import { DEFAULT_VERTEX_MERGE_THRESHOLD, CONSOLE_SUB_INDENT } from '../../constants';
 
-export function mergeCloseVertices(mesh: OBJModel, threshold: number = 0.01) {
+export function mergeCloseVertices(
+  mesh: OBJModel,
+  threshold: number = DEFAULT_VERTEX_MERGE_THRESHOLD,
+): OBJModel {
   const { vertices } = mesh;
   const newVertices: Vec[] = [];
   const map = new Array(vertices.length);
 
   for (let i = 0; i < vertices.length; i++) {
-    const v = vertices[i];
+    const v = vertices[i]!;
     let found = -1;
 
     for (let j = 0; j < newVertices.length; j++) {
-      const delta = dist3(v, newVertices[j]);
+      const delta = dist3(v, newVertices[j]!);
 
       if (delta < threshold) {
         found = j;
@@ -29,7 +33,7 @@ export function mergeCloseVertices(mesh: OBJModel, threshold: number = 0.01) {
     }
   }
 
-  console.log(`    ${newVertices.length - vertices.length} removed.`);
+  console.log(`${CONSOLE_SUB_INDENT}${newVertices.length - vertices.length} removed.`);
 
   const clonedMesh: OBJModel = copy(mesh, Object);
   clonedMesh.vertices = newVertices;
@@ -41,9 +45,9 @@ export function mergeCloseVertices(mesh: OBJModel, threshold: number = 0.01) {
       faces: group.faces.map((face) => ({
         ...face,
         v: face.v
-          .map((idx) => map[idx])
+          .map((idx) => map[idx]!)
           .filter((idx, i, array) => {
-            return i === 0 || idx !== array[i - 1];
+            return i === 0 || idx !== array[i - 1]!;
           }),
       })),
     })),

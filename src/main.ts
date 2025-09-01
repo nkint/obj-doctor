@@ -1,10 +1,7 @@
 import { readFileSync, writeFileSync } from 'fs';
-import { parseOBJ } from '@thi.ng/geom-io-obj';
-import { removeDegeneratedFaces } from './services/remove-degenerated-faces/removeDegeneratedFaces';
-import { mergeCloseVertices } from './services/merge-close-vertices/mergeCloseVertices';
-import { mergeCoplanarFaces } from './services/merge-coplanar-faces/mergeCoplanarFaces';
-import { OBJModel } from '@thi.ng/geom-io-obj';
-import { dist3, Vec3 } from '@thi.ng/vectors';
+import { parseOBJ, OBJModel } from '@thi.ng/geom-io-obj';
+import { removeDegeneratedFaces, mergeCloseVertices, mergeCoplanarFaces } from './services';
+import { CONSOLE_INDENT } from './constants';
 
 /**
  * Export OBJ model to string format
@@ -39,9 +36,19 @@ function exportOBJ(mesh: OBJModel): string {
 }
 
 /**
+ * Count total faces in a mesh
+ */
+function countTotalFaces(mesh: OBJModel): number {
+  return mesh.objects.reduce(
+    (acc, obj) => acc + obj.groups.reduce((acc2, group) => acc2 + group.faces.length, 0),
+    0,
+  );
+}
+
+/**
  * Main function to process OBJ files
  */
-function main() {
+function main(): void {
   // Get input file from command line arguments
   const args = process.argv.slice(2);
 
@@ -50,7 +57,7 @@ function main() {
     process.exit(1);
   }
 
-  const inputFile = args[0];
+  const inputFile = args[0]!;
   const outputFile = args[1] || inputFile.replace('.obj', '_cleaned.obj');
 
   try {
@@ -60,29 +67,25 @@ function main() {
     const objContent = readFileSync(inputFile, 'utf-8');
     const mesh: OBJModel = parseOBJ(objContent);
 
-    console.log(
-      `Original mesh: ${mesh.vertices.length} vertices, ${mesh.objects.reduce((acc, obj) => acc + obj.groups.reduce((acc2, group) => acc2 + group.faces.length, 0), 0)} faces`,
-    );
+    const originalFaceCount = countTotalFaces(mesh);
+    console.log(`Original mesh: ${mesh.vertices.length} vertices, ${originalFaceCount} faces`);
 
     // Apply mesh cleaning operations in sequence
     console.log('Applying mesh cleaning operations...');
 
     // 1. Remove degenerated faces
-    console.log('1. Removing degenerated faces...');
+    console.log(`${CONSOLE_INDENT}1. Removing degenerated faces...`);
     let cleanedMesh = removeDegeneratedFaces(mesh);
 
     // 2. Merge close vertices
-    console.log('2. Merging close vertices...');
+    console.log(`${CONSOLE_INDENT}2. Merging close vertices...`);
     cleanedMesh = mergeCloseVertices(cleanedMesh);
 
     // 3. Merge coplanar faces
-    console.log('3. Merging coplanar faces...');
+    console.log(`${CONSOLE_INDENT}3. Merging coplanar faces...`);
     cleanedMesh = mergeCoplanarFaces(cleanedMesh);
 
-    const finalFaceCount = cleanedMesh.objects.reduce(
-      (acc, obj) => acc + obj.groups.reduce((acc2, group) => acc2 + group.faces.length, 0),
-      0,
-    );
+    const finalFaceCount = countTotalFaces(cleanedMesh);
 
     console.log(`Cleaned mesh: ${cleanedMesh.vertices.length} vertices, ${finalFaceCount} faces`);
 

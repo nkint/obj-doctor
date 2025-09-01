@@ -1,6 +1,6 @@
 # Obj Doctor
 
-A simple Node.js tool for cleaning and repearing 3D mesh files (OBJ format) by removing degenerate faces, merging close vertices, and consolidating coplanar faces.
+A simple Node.js tool for cleaning and repairing 3D mesh files (OBJ format) by removing degenerate faces, merging close vertices, and consolidating coplanar faces.
 
 This tool is intended for use as a toy project and is not equipped to handle some important real-world cases. These include UV, vertex normals, watertight meshes or non-manifold edges.
 
@@ -12,20 +12,30 @@ Most of the code is based on some python scripts that were generated using AI an
 - **Merge Close Vertices**: Consolidates vertices that are within a specified distance threshold
 - **Merge Coplanar Faces**: Combines adjacent faces that lie on the same plane
 
-## Installation
+## Development Setup
+
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Install Dependencies
 
 ```bash
 npm install
 ```
 
-## Usage
-
-### Command Line Interface
-
-Process an OBJ file directly from the command line:
+### Run Mode
 
 ```bash
-npm start input.obj [output.obj]
+npm run start input.obj [output.obj]
+```
+
+### Run Tests
+
+```bash
+npm test
+npm run test:watch  # Run tests in watch mode (Node test runner)
 ```
 
 ## API Reference
